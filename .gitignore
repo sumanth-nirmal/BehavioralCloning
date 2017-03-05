@@ -1,0 +1,5 @@
+# ignore our bag files, png images, csv, yaml files
+*.jpeg
+*.jpg
+*.csv
+/linux_sim
