@@ -90,7 +90,7 @@ X_train, X_valid, y_train, y_valid = train_test_split(
     X_train,
     y_train,
     test_size=0.25,
-    random_state=745349)
+    random_state=832289)
 
 # Print out shapes of new arrays
 train_size = X_train.shape[0]
@@ -134,4 +134,4 @@ while not stop:
         stop = True
     else:
         print("Please use a different file name other than camera.pickle")
-pickle_file = input("Enter: ")
+        pickle_file = input("Enter: ")
