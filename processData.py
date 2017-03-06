@@ -48,8 +48,8 @@ def load_image(data_line, j):
     lis = img.flatten().tolist()
     return lis
 
-data = data[:100]
-
+#data = data[:100]
+#print('sumanth',len(data))
 # For each item in data, convert camera images to single list
 # and save them into features list.
 for i in tqdm(range(int(len(data))), unit='items'):
@@ -90,7 +90,7 @@ X_train, X_valid, y_train, y_valid = train_test_split(
     X_train,
     y_train,
     test_size=0.25,
-    random_state=832289)
+    random_state=745349)
 
 # Print out shapes of new arrays
 train_size = X_train.shape[0]
