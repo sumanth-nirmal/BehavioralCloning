@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 ### Paths to folder and label
-folder_path = "//home/sumanth/catkin_ws/src/BehavioralCloning/Udata/data"
+folder_path = "/home/sumanth/catkin_ws/src/BehavioralCloning/trainingData/Udata/data"
 label_path = "{}/driving_log.csv".format(folder_path)
 
 
@@ -43,7 +43,8 @@ labels = ()
 ### The length of the each list will be 18 x 80 = 1440
 ### j = 0,1,2 corresponds to center, left, right
 def load_image(data_line, j):
-    img = plt.imread(data_line[j].strip())[65:135:4,0:-1:4,0]
+    print(data_line[j].strip())
+    img = plt.imread(folder_path+'/'+data_line[j].strip())[65:135:4,0:-1:4,0]
     lis = img.flatten().tolist()
     return lis
 
@@ -54,6 +55,7 @@ data = data[:100]
 for i in tqdm(range(int(len(data))), unit='items'):
     for j in range(3):
         features += (load_image(data[i],j),)
+
 
 item_num = len(features)
 print("features size", item_num)

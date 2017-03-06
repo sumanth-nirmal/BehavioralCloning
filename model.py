@@ -1,190 +1,186 @@
-
-#!/usr/bin/python
-## Author: sumanth
-## Date: Feb, 05,2017
-# model the data into keras
-
-import numpy as np
-import csv
-import cv2
-from sklearn.model_selection import train_test_split
-from keras.models import Sequential
-from keras.layers.convolutional import Convolution2D
-from keras.layers.core import Dense, Activation, Flatten, Lambda
-from keras.layers import Dropout
-from keras.regularizers import l2
-from keras.optimizers import Adam
-from keras.layers.advanced_activations import ELU
-import tensorflow as tf
-import random
+# Load the modules
+import pickle
 import math
-import sklearn
-tf.python.control_flow_ops = tf
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+# Import keras deep learning libraries
+import json
+from keras.models import Sequential, model_from_json
+from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Convolution2D, MaxPooling2D
+from keras.optimizers import SGD, Adam, RMSprop
+from keras.utils import np_utils
+from keras import backend as K
 
-def darken_image(image):
-    bright_factor = .25
-    #assuming HSV image
-    image[:,:,2] = image[:,:,2]*bright_factor
+# Reload the data
+pickle_file = 'camera.pickle'
+with open(pickle_file, 'rb') as f:
+    pickle_data = pickle.load(f)
+    X_train = pickle_data['train_dataset']
+    y_train = pickle_data['train_labels']
+    X_valid = pickle_data['valid_dataset']
+    y_valid = pickle_data['valid_labels']
+    X_test = pickle_data['test_dataset']
+    y_test = pickle_data['test_labels']
+    del pickle_data  # Free up memory
 
-    return image
+# Print shapes of arrays that are imported
+print('Data and modules loaded.')
+print("train_features size:", X_train.shape)
+print("train_labels size:", y_train.shape)
+print("valid_features size:", X_valid.shape)
+print("valid_labels size:", y_valid.shape)
+print("test_features size:", X_test.shape)
+print("test_labels size:", y_test.shape)
 
-def flip_image(image, steering_angle):
-    image = cv2.flip(image,1)
-    steering_angle = steering_angle * -1
+# the data, shuffled and split between train and test sets
+X_train = X_train.astype('float32')
+X_valid = X_valid.astype('float32')
+X_test  = X_test.astype('float32')
+X_train /= 255
+X_valid /= 255
+X_test  /= 255
+X_train -= 0.5
+X_valid -= 0.5
+X_test  -= 0.5
 
-    return image, steering_angle
+# This is the shape of the image
+input_shape = X_train.shape[1:]
+print(input_shape, 'input shape')
 
-def random_shadow(image):
-    bright_factor = 0.3
+# Set the parameters and print out the summary of the model
+np.random.seed(1337)  # for reproducibility
 
-    x = random.randint(0, image.shape[1])
-    y = random.randint(0, image.shape[0])
+batch_size = 64 # The lower the better
+nb_classes = 1 # The output is a single digit: a steering angle
+nb_epoch = 10 # The higher the better
 
-    width = random.randint(int(image.shape[1]/2),image.shape[1])
-    if(x+ width > image.shape[1]):
-        x = image.shape[1] - x
-    height = random.randint(int(image.shape[0]/2),image.shape[0])
-    if(y + height > image.shape[0]):
-        y = image.shape[0] - y
+# import model and wieghts if exists
+try:
+	with open('model.json', 'r') as jfile:
+	    model = model_from_json(json.load(jfile))
 
-    #Assuming HSV image
-    image[y:y+height,x:x+width,2] = image[y:y+height,x:x+width,2]*bright_factor
+	# Use adam and mean squared error for training
+	model.compile("adam", "mse")
 
-    return image
+	# import weights
+	model.load_weights('model.h5')
 
+	print("Imported model and weights")
 
-def normalize_image(image):
-    image = image / 255 - 0.5
-    return image
+# If the model and weights do not exist, create a new model
+except:
+	# If model and weights do not exist in the local folder,
+	# initiate a model
 
-def preprocess_pipeline(image, y):
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-    #crop image
-    image = image[50:(image.shape[0]-25), 0:image.shape[1]]
+	# number of convolutional filters to use
+	nb_filters1 = 16
+	nb_filters2 = 8
+	nb_filters3 = 4
+	nb_filters4 = 2
 
-    if(random.random() <= 0.4):
-        image = darken_image(image)
-    if(random.random() <= 0.4):
-        image = random_shadow(image)
+	# size of pooling area for max pooling
+	pool_size = (2, 2)
 
-    if(random.random() <= 0.8):
-        image, y = flip_image(image,y)
+	# convolution kernel size
+	kernel_size = (3, 3)
 
-    image = cv2.resize(image,(64,64),interpolation = cv2.INTER_AREA)
-    return image,y
+	# Initiating the model
+	model = Sequential()
 
+	# Starting with the convolutional layer
+	# The first layer will turn 1 channel into 16 channels
+	model.add(Convolution2D(nb_filters1, kernel_size[0], kernel_size[1],
+	                        border_mode='valid',
+	                        input_shape=input_shape))
+	# Applying ReLU
+	model.add(Activation('relu'))
+	# The second conv layer will convert 16 channels into 8 channels
+	model.add(Convolution2D(nb_filters2, kernel_size[0], kernel_size[1]))
+	# Applying ReLU
+	model.add(Activation('relu'))
+	# The second conv layer will convert 8 channels into 4 channels
+	model.add(Convolution2D(nb_filters3, kernel_size[0], kernel_size[1]))
+	# Applying ReLU
+	model.add(Activation('relu'))
+	# The second conv layer will convert 4 channels into 2 channels
+	model.add(Convolution2D(nb_filters4, kernel_size[0], kernel_size[1]))
+	# Applying ReLU
+	model.add(Activation('relu'))
+	# Apply Max Pooling for each 2 x 2 pixels
+	model.add(MaxPooling2D(pool_size=pool_size))
+	# Apply dropout of 25%
+	model.add(Dropout(0.25))
 
-samples = []
-path = '/home/sumanth/catkin_ws/src/BehavioralCloning/trainingData/Udata/data/driving_log.csv'
+	# Flatten the matrix. The input has size of 360
+	model.add(Flatten())
+	# Input 360 Output 16
+	model.add(Dense(16))
+	# Applying ReLU
+	model.add(Activation('relu'))
+	# Input 16 Output 16
+	model.add(Dense(16))
+	# Applying ReLU
+	model.add(Activation('relu'))
+	# Input 16 Output 16
+	model.add(Dense(16))
+	# Applying ReLU
+	model.add(Activation('relu'))
+	# Apply dropout of 50%
+	model.add(Dropout(0.5))
+	# Input 16 Output 1
+	model.add(Dense(nb_classes))
 
-with open(path, newline='') as csvfile:
-    reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-    samples = list(reader)
+# Print out summary of the model
+model.summary()
 
-train_samples, validation_samples = train_test_split(samples, test_size=0.1)
+# Compile model using Adam optimizer
+# and loss computed by mean squared error
+model.compile(loss='mean_squared_error',
+              optimizer=Adam(),
+              metrics=['accuracy'])
 
+### Model training
+history = model.fit(X_train, y_train,
+                    batch_size=batch_size, nb_epoch=nb_epoch,
+                    verbose=1, validation_data=(X_valid, y_valid))
+score = model.evaluate(X_test, y_test, verbose=0)
+print('Test score:', score[0])
+print('Test accuracy:', score[1])
 
-def data_generator(samples, batch_size = 50):
-    while 1:
-        random.shuffle(samples)
-        print(len(samples))
-        num_samples = len(samples)
-        X_train = []
-        y_train = []
-        count = 0
-        for offset in range(0, num_samples, batch_size):
-            #for row in file_reader:
+import json
+import os
+import h5py
 
-            batch_samples = samples[offset:offset+batch_size]
-            X_train = []
-            y_train = []
-            for row in batch_samples:
-                # Load images and preprocess
-                x_center = cv2.imread(row[0])
-                x_left = cv2.imread(row[1].strip())
-                x_right = cv2.imread(row[2].strip())
-                y_center = float(row[3])
-                y_left = float(row[3]) + 0.25
-                y_right = float(row[3]) - 0.25
+# Save the model.
+# If the model.json file already exists in the local file,
+# warn the user to make sure if user wants to overwrite the model.
+if 'model.json' in os.listdir():
+	print("The file already exists")
+	print("Want to overwite? y or n")
+	user_input = input()
 
-                x_center,y_center = preprocess_pipeline(x_center,y_center)
-                x_left,y_left = preprocess_pipeline(x_left,y_left)
-                x_right,y_right = preprocess_pipeline(x_right,y_right)
+	if user_input == "y":
+		# Save model as json file
+		json_string = model.to_json()
 
-                X_train.append(x_center)
-                y_train.append(y_center)
-                X_train.append(x_left)
-                y_train.append(y_left)
-                X_train.append(x_right)
-                y_train.append(y_right)
+		with open('model.json', 'w') as outfile:
+			json.dump(json_string, outfile)
 
-            X_train, y_train = sklearn.utils.shuffle(np.array(X_train), np.array(y_train))
-            yield ({'lambda_input_1': X_train}, {'dense_4': y_train})
+			# save weights
+			model.save_weights('./model.h5')
+			print("Overwrite Successful")
+	else:
+		print("the model is not saved")
+else:
+	# Save model as json file
+	json_string = model.to_json()
 
+	with open('model.json', 'w') as outfile:
+		json.dump(json_string, outfile)
 
-# Create the Sequential model
-model = Sequential()
-
-model.add(Lambda(normalize_image,input_shape=(64,64,3)))
-
-# 3X3 convolution layer
-model.add(Convolution2D(24,3,3,
-                        border_mode='valid',
-                        input_shape=(64,64,3),
-                        subsample=(2,2),
-                        W_regularizer=l2(0.0001),
-                        init='normal'))
-model.add(ELU(alpha=1.0))
-model.add(Dropout(0.5))
-
-# 3X3 convolution layer
-model.add(Convolution2D(48,3,3,
-                        border_mode='valid',
-                        input_shape=(31,31,24),
-                        subsample=(2,2),
-                        W_regularizer=l2(0.0001),
-                        init='normal'))
-model.add(ELU(alpha=1.0))
-model.add(Dropout(0.5))
-
-# 3X3 convolution layer
-model.add(Convolution2D(96,3,3,
-                        border_mode='valid',
-                        input_shape=(15,15,96),
-                        subsample=(2,2),
-                        W_regularizer=l2(0.0001),
-                        init='normal'))
-model.add(ELU(alpha=1.0))
-model.add(Dropout(0.5))
-
-model.add(Flatten(input_shape=(7, 7, 96)))
-
-model.add(Dense(500,
-                W_regularizer=l2(0.0003),
-                init='normal'))
-model.add(ELU(alpha=1.0))
-
-model.add(Dense(50,
-                W_regularizer=l2(0.0001),
-                init='normal'))
-model.add(ELU(alpha=1.0))
-
-model.add(Dense(10,
-                W_regularizer=l2(0.0001),
-                init='normal'))
-model.add(ELU(alpha=1.0))
-
-model.add(Dense(1,
-                W_regularizer=l2(0.001),
-                init='normal'))
-
-model.compile(optimizer=Adam(lr=0.0001), loss = 'mse')
-print("Done compiling")
-
-history = model.fit_generator(data_generator(train_samples),
-                            validation_data=data_generator(validation_samples),
-                            nb_val_samples=len(validation_samples),
-                            samples_per_epoch=len(train_samples), nb_epoch=7)
-
-
-model.save('model.h5')
+		# save weights
+		model.save_weights('./model.h5')
+		print("Saved")
