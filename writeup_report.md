@@ -56,13 +56,12 @@ below shows the summary of model used for training
 
 Layer (type)                         |    Output Shape     |  Param #  | Connected to    
 -------------------------------------|---------------------|---------- | -----------------------
-lambda_1 (Lambda)        |        (None, 64, 64, 3)   |  0      |     lambda_input_1[0][0]             
-convolution2d_1 (Convolution2D)  | (None, 32, 32, 24) |   1824   |     lambda_1[0][0]                   
-activation_1 (Activation)     |   (None, 32, 32, 24) |   0     |      convolution2d_1[0][0]            
-maxpooling2d_1 (MaxPooling2D)  | (None, 31, 31, 24)  |  0      |     activation_1[0][0]               
-convolution2d_2 (Convolution2D) | (None, 16, 16, 36)  |  21636  |     maxpooling2d_1[0][0]             
-
-activation_2 (Activation)   |     (None, 16, 16, 36) |   0       |   convolution2d_2[0][0]            
+lambda_1 (Lambda)                    | (None, 64, 64, 3)   |  0      |     lambda_input_1[0][0]             
+convolution2d_1 (Convolution2D)      | (None, 32, 32, 24) |   1824   |     lambda_1[0][0]                   
+activation_1 (Activation)            | (None, 32, 32, 24) |   0     |      convolution2d_1[0][0]            
+maxpooling2d_1 (MaxPooling2D)        | (None, 31, 31, 24)  |  0      |     activation_1[0][0]               
+convolution2d_2 (Convolution2D)      | (None, 16, 16, 36)  |  21636  |     maxpooling2d_1[0][0]             
+activation_2 (Activation)            | (None, 16, 16, 36) |   0       |   convolution2d_2[0][0]            
 maxpooling2d_2 (MaxPooling2D)  |  (None, 15, 15, 36)  |  0     |      activation_2[0][0]               
 convolution2d_3 (Convolution2D)|  (None, 8, 8, 48)    |  43248   |    maxpooling2d_2[0][0]             
 activation_3 (Activation)    |    (None, 8, 8, 48)   |   0      |     convolution2d_3[0][0]            
