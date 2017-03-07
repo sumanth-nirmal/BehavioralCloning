@@ -17,6 +17,12 @@ import json
 import os
 import h5py
 
+# training parameters
+batch_size = 200 # The lower the better
+nb_classes = 1 # The output is a single digit: a steering angle
+nb_epoch = 5 # The higher the better
+
+
 # load the pickled data
 pickle_file = 'camera.pickle'
 with open(pickle_file, 'rb') as f:
@@ -56,88 +62,107 @@ print(input_shape, 'input shape')
 # Set the parameters and print out the summary of the model
 np.random.seed(1337)  # for reproducibility
 
-batch_size = 200 # The lower the better
-nb_classes = 1 # The output is a single digit: a steering angle
-nb_epoch = 30 # The higher the better
-
 # import model and wieghts if exists
 try:
-	with open('model.json', 'r') as jfile:
-	    model = model_from_json(json.load(jfile))
+    with open('model.json', 'r') as jfile:
+        model = model_from_json(json.load(jfile))
 
-	# Use adam and mean squared error for training
-	model.compile("adam", "mse")
+    # Use adam and mean squared error for training
+    model.compile("adam", "mse")
 
-	# import weights
-	model.load_weights('model.h5')
+    # import weights
+    model.load_weights('model.h5')
 
-	print("Imported model and weights")
+    print("Imported model and weights")
 
 # If the model and weights do not exist, create a new model
 except:
-	# If model and weights do not exist in the local folder,
-	# initiate a model
+    # If model and weights do not exist in the local folder,
+    # initiate a model
 
-	# number of convolutional filters to use
-	nb_filters1 = 16
-	nb_filters2 = 8
-	nb_filters3 = 4
-	nb_filters4 = 2
+    # number of convolutional filters to use
+    nb_filters1 = 16
+    nb_filters2 = 8
+    nb_filters3 = 4
+    nb_filters4 = 2
 
-	# size of pooling area for max pooling
-	pool_size = (2, 2)
+    # size of pooling area for max pooling
+    pool_size = (2, 2)
 
-	# convolution kernel size
-	kernel_size = (3, 3)
+    # convolution kernel size
+    kernel_size = (3, 3)
 
-	# Initiating the model
-	model = Sequential()
+    # Initiating the model
+    model = Sequential()
 
-	# Starting with the convolutional layer
-	# The first layer will turn 1 channel into 16 channels
-	model.add(Convolution2D(nb_filters1, kernel_size[0], kernel_size[1],
-	                        border_mode='valid',
-	                        input_shape=input_shape))
-	# Applying ReLU
-	model.add(Activation('relu'))
-	# The second conv layer will convert 16 channels into 8 channels
-	model.add(Convolution2D(nb_filters2, kernel_size[0], kernel_size[1]))
-	# Applying ReLU
-	model.add(Activation('relu'))
-	# The second conv layer will convert 8 channels into 4 channels
-	model.add(Convolution2D(nb_filters3, kernel_size[0], kernel_size[1]))
-	# Applying ReLU
-	model.add(Activation('relu'))
-	# The second conv layer will convert 4 channels into 2 channels
-	model.add(Convolution2D(nb_filters4, kernel_size[0], kernel_size[1]))
-	# Applying ReLU
-	model.add(Activation('relu'))
-	# Apply Max Pooling for each 2 x 2 pixels
-	model.add(MaxPooling2D(pool_size=pool_size))
-	# Apply dropout of 25%
-	model.add(Dropout(0.25))
+    # Starting with the convolutional layer
+    # The first layer will turn 1 channel into 16 channels
+    model.add(Convolution2D(nb_filters1, kernel_size[0], kernel_size[1],
+                            border_mode='valid',
+                            input_shape=input_shape))
+    # Applying ReLU
+    model.add(Activation('relu'))
+    # The second conv layer will convert 16 channels into 8 channels
+    model.add(Convolution2D(nb_filters2, kernel_size[0], kernel_size[1]))
+    # Applying ReLU
+    model.add(Activation('relu'))
+    # The second conv layer will convert 8 channels into 4 channels
+    model.add(Convolution2D(nb_filters3, kernel_size[0], kernel_size[1]))
+    # Applying ReLU
+    model.add(Activation('relu'))
+    # The second conv layer will convert 4 channels into 2 channels
+    model.add(Convolution2D(nb_filters4, kernel_size[0], kernel_size[1]))
+    # Applying ReLU
+    model.add(Activation('relu'))
+    # Apply Max Pooling for each 2 x 2 pixels
+    model.add(MaxPooling2D(pool_size=pool_size))
+    # Apply dropout of 25%
+    model.add(Dropout(0.25))
 
-	# Flatten the matrix. The input has size of 360
-	model.add(Flatten())
-	# Input 360 Output 16
-	model.add(Dense(16))
-	# Applying ReLU
-	model.add(Activation('relu'))
-	# Input 16 Output 16
-	model.add(Dense(16))
-	# Applying ReLU
-	model.add(Activation('relu'))
-	# Input 16 Output 16
-	model.add(Dense(16))
-	# Applying ReLU
-	model.add(Activation('relu'))
-	# Apply dropout of 50%
-	model.add(Dropout(0.5))
-	# Input 16 Output 1
-	model.add(Dense(nb_classes))
+    # Flatten the matrix. The input has size of 360
+    model.add(Flatten())
+    # Input 360 Output 16
+    model.add(Dense(16))
+    # Applying ReLU
+    model.add(Activation('relu'))
+    # Input 16 Output 16
+    model.add(Dense(16))
+    # Applying ReLU
+    model.add(Activation('relu'))
+    # Input 16 Output 16
+    model.add(Dense(16))
+    # Applying ReLU
+    model.add(Activation('relu'))
+    # Apply dropout of 50%
+    model.add(Dropout(0.5))
+    # Input 16 Output 1
+    model.add(Dense(nb_classes))
 
 # Print out summary of the model
 model.summary()
+
+# Save the model architecture as json, if file already exists
+# warn the user to overwrite the model.
+if 'model.json' in os.listdir():
+    print("The model.json already exists")
+    print("Want to overwite? y or n")
+    user_input = input()
+
+    if user_input == "y":
+        # Save model as json file
+         json_string = model.to_json()
+         with open('model.json', 'w') as outfile:
+            json.dump(json_string, outfile)
+            print("Overwrite Successful")
+    else:
+        print("the model architecture is not saved")
+else:
+    # Save model as json file
+    json_string = model.to_json()
+
+    with open('model.json', 'w') as outfile:
+        json.dump(json_string, outfile)
+    print("the model architecture is saved")
 
 # Compile model using Adam optimizer
 # and loss computed by mean squared error
@@ -154,32 +179,19 @@ print('Test score:', score[0])
 print('Test accuracy:', score[1])
 
 # Save the model.
-# If the model.json file already exists in the local file,
-# warn the user to make sure if user wants to overwrite the model.
-if 'model.json' in os.listdir():
-	print("The file already exists")
-	print("Want to overwite? y or n")
-	user_input = input()
+# if the model already exists warn the user to over write
+if 'model.h5' in os.listdir():
+    print("The model.h5 already exists")
+    print("Want to overwite? y or n")
+    user_input = input()
 
-	if user_input == "y":
-		# Save model as json file
-		json_string = model.to_json()
-
-		with open('model.json', 'w') as outfile:
-			json.dump(json_string, outfile)
-
-			# save weights
-			model.save_weights('./model.h5')
-			print("Overwrite Successful")
-	else:
-		print("the model is not saved")
+    if user_input == "y":
+        # save the model
+        model.save('./model.h5')
+        print("Overwrite Successful")
+    else:
+        print("the model is not saved")
 else:
-	# Save model as json file
-	json_string = model.to_json()
-
-	with open('model.json', 'w') as outfile:
-		json.dump(json_string, outfile)
-
-		# save weights
-		model.save_weights('./model.h5')
-		print("Saved")
+    # save weights
+    model.save('./model.h5')
+    print("Saved the model")
