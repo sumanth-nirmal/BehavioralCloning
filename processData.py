@@ -19,8 +19,8 @@ from sklearn.cross_validation import train_test_split
 import pickle
 
 ### Paths to folder and label
-fPath = "/home/sumanth/catkin_ws/src/BehavioralCloning/trainingData/Udata/data"
-csvPath = "{}/driving_log.csv".format(fPath)
+fPath = '' #"/home/sumanth/catkin_ws/src/BehavioralCloning/Udata/data"
+csvPath = "{}/driving_log.csv".format('/home/sumanth/catkin_ws/src/BehavioralCloning/Mdata') #fPath)
 
 
 ### Import data
@@ -34,10 +34,6 @@ print("data imported")
 ### size of the data
 print("data size:", len(data))
 
-### Emtpy generators for feature and labels
-features = ()
-labels = ()
-
 ### This function will resize the images from front, left and
 ### right camera to 18 x 80 and turn them into lists.
 ### The length of the each list will be 18 x 80 = 1440
@@ -48,8 +44,11 @@ def load_image(data_line, j):
     lis = img.flatten().tolist()
     return lis
 
-
 def main():
+    ### Emtpy generators for feature and labels
+    features = ()
+    labels = ()
+
     #data = data[:100]
     # For each item in data, convert camera images to single list
     # and save them into features list.

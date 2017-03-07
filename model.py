@@ -18,10 +18,10 @@ import os
 import h5py
 
 # training parameters
-batch_size = 200 # The lower the better
+batch_size = 20 # The lower the better
 nb_classes = 1 # The output is a single digit: a steering angle
-nb_epoch = 6 # The higher the better
-
+nb_epoch = 10 # The higher the better
+load_previous_weights = False # flag to indicate if training should loda the previous weights
 
 # load the pickled data
 pickle_file = 'camera.pickle'
@@ -164,10 +164,10 @@ else:
         json.dump(json_string, outfile)
     print("the model architecture is saved")
 
-# uncomment below lines if u want to use the previously trained weights and give the name of weights
-# loda the pre trained weights
-model.load_weights("weights" + ".h5")
-print("Loaded the pre trained weights")
+if load_previous_weights == True:
+    # loda the pre trained weights
+    model.load_weights("weights" + ".h5")
+    print("Loaded the pre trained weights")
 
 # complie the model
 model.compile(loss='mse', optimizer='adam')
