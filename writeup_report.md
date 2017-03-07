@@ -15,15 +15,15 @@ The approach follwed in this project is as follows:
 
 ## processData.py
 This imports the raw images then resizes and normalises the images.
-Resizing the images will have less features for network to train on. The resized images and the steering angles are saved as features and labels respondingly. The data is splitted into training and validation data and saved it as a .pickle file *(camer.pickle)*
+Resizing the images will have less features for network to train on. The resized images and the steering angles are saved as features and labels respondingly. The data is splitted into training and validation data and saved it as a .pickle file *(camera.pickle)*
 
-**note: we can also use a python generator for this approach instead of a pickled dataset**
+**note: we can also use a python generator for this approach instead of a pickled dataset**                  
 As the data set is smaller I have choosen pickle.
 
 ## model.py
 This builds the neural network model details given below. Then compiles the model and saves a .json file *(model.json)* Loads the data from pickle file and then trains the model over training data and evaluate over the test data and save the weights as .hd file *(model.h5)*
 
-below shows the summary of model used for training
+below shows the summary of model used for training              
     ___________________________________________________________________________________________________
     Layer (type)                     Output Shape          Param #     Connected to                     
     ====================================================================================================
@@ -66,7 +66,7 @@ below shows the summary of model used for training
     dense_4 (Dense)                  (None, 1)             17          dropout_2[0][0]                  
     ====================================================================================================
     Total params: 8023
-    
+               
  The model is with 8023 params, used *Adam optimizer*, *mean squared error* as loss metric. The model is trained for 30 epochs.
  
  **note**: getting more data and using pre processed data (i.e augmenting the images) and training it for more epochs would increase the accuracy.
@@ -85,7 +85,7 @@ Since the images were reshaped and normalized during training, the image from th
 this should used the pre trained weights and the model and predict the steering angle
 * then run the simulator in autonomous mode and the car should be sucessfully driven in the simulator.
 
-** Training and predicting**
+**Training and predicting**
 
 * collect the data and modify the path accordingly in *processData.py*
 * `python processData.py` this should iterate through all the images in the folder and generate pickle file 
