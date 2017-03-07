@@ -17,6 +17,17 @@ The approach follwed in this project is as follows:
 This imports the raw images then resizes and normalises the images.
 Resizing the images will have less features for network to train on. The resized images and the steering angles are saved as features and labels respondingly. The data is splitted into training and validation data and saved it as a .pickle file *(camera.pickle)*
 
+The input images recorded from the simulator and the images resized and cropped are shown below, for all the thre  camera
+
+Center:                
+![Center](images/center.png)
+
+Left:                
+![left](images/left.png)
+
+Right:                
+![right](images/right.png)
+
 **note: we can also use a python generator for this approach instead of a pickled dataset**                  
 As the data set is smaller I have choosen pickle.
 
