@@ -98,7 +98,7 @@ The model is with 2,116,983 params
 then trains the model over training data and save the model with weights as .hd file *(model.h5)* and weights as *weights.h5*
 
 Used a batch size of 64 for both traning and validation and used 20000 images per epoch.
-Trained the model with different epoch's like 5, 8, 10, 15. 20, 30, 40, 50. but after 12 epochs the accuracy starts decreasing, so fixed with 8 epochs, this gives a sufficiently trained model for the given sample dataset. a kind of [early stopping](https://en.wikipedia.org/wiki/Early_stopping).
+Trained the model with different epoch's like 5, 8, 10, 15. 20, 30, 40, 50. but after 12 epochs the accuracy starts decreasing, so fixed with 8 epochs, this gives a sufficiently trained model for the given sample dataset. a kind of [early stopping](https://en.wikipedia.org/wiki/Early_stopping) to reduce over fitting
 
 **note:**Usually dropout layers are used to reduce over fitting, if we use dropout layers in the model during training, these dorpout layers should be removed in the inference mode (while prediticting the steering angle).
  
