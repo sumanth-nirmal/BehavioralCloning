@@ -90,8 +90,17 @@ Non-trainable params: 0
 
 *used pooling layers to reduce the training time*
                
-The model is with 2,116,983 params, used *Adam optimizer*, *mean squared error* as loss metric and *1e-4* learning rate. The model is trained for 8 epochs. The model is compiled and saves the architecture as a .json file *(model.json)*.
+The model is with 2,116,983 params
+
+## Training
+
+**model.py** used *Adam optimizer*, *mean squared error* as loss metric and *1e-4* learning rate. The model is trained for 8 epochs. The model is compiled and saves the architecture as a .json file *(model.json)*.
 then trains the model over training data and save the model with weights as .hd file *(model.h5)* and weights as *weights.h5*
+
+Used a batch size of 64 for both traning and validation and used 20000 images per epoch.
+Trained the model with different epoch's like 5, 8, 10, 15. 20, 30, 40, 50. but after 12 epochs the accuracy starts decreasing, so fixed with 8 epochs, this gives a sufficiently trained model for the given sample dataset.
+
+**note:**Usually dropout layers are used to reduce over fitting, if we use dropout layers in the model during training, these dorpout layers should be removed in the inference mode (while prediticting the steering angle).
  
 ## Results
 Tried different model and also on the self generated dataset, but the results were not satisfactory. The Nvidia model with udacity class provided dataset gave the significant results.
