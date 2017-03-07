@@ -13,11 +13,29 @@ The approach follwed in this project is as follows:
 * Tested the model in the simulator for driving a complete lap.
 
 
-## processData.py
-This imports the raw images then resizes and normalises the images.
-Resizing the images will have less features for network to train on. The resized images and the steering angles are saved as features and labels respondingly. The data is splitted into training and validation data and saved it as a .pickle file *(camera.pickle)*
+## pPre processing
 
-The input images recorded from the simulator and the images resized and cropped are shown below, for all the thre  camera
+**rocessData.py**s has all the helper functions to pre process the images and data generators to yield the data for training and validation.
+**key point here is to pre process the images**
+
+The simulator records the three images from left center and right cameras with 10Hz and the corresponding steering angle.
+below figures shows the images from three cameras and the steering angle:
+
+The dataset provided by the udacity in the class has 24108 images (8036 images per camera angle). 
+
+The pre processing pipeline is as follows, we apply 
+* *random shear* for 90% of the images (i,e, 0.9 % probability) then 
+* *crop* the image, 35% from top and 10% from bottom then
+* *flip* the image randomly (i,e with 0.5 probability) and corresponding steering angles are also flipped
+* then do the *gamma correction* 
+* and finally *resize* the image to 64x64 to reduce the training starin
+then the images are fed to the network.
+
+The individual processing techniques are shown on a single image:
+
+below shows the image after all processing:
+
+
 
 Center:                
 ![center](images/center.png)
@@ -28,65 +46,83 @@ Left:
 Right:                
 ![right](images/right.png)
 
-**note: we can also use a python generator for this approach instead of a pickled dataset**                  
-As the data set is smaller I have choosen pickle.
 
-## model.py
-This builds the neural network model details given below. Then compiles the model and saves the architecture as a .json file *(model.json)* Loads the data from pickle file and then trains the model over training data and evaluate over the test data and save the model with weights as .hd file *(model.h5)*
+## Network Architecture
+**model.py** has the implemented model. the model is atken from [Nvidia End to End learning](https://arxiv.org/pdf/1604.07316.pdf) and the details are given below. 
 
 below shows the summary of model used for training              
-        ___________________________________________________________________________________________________
         Layer (type)                     Output Shape          Param #     Connected to                     
-        ====================================================================================================
-        convolution2d_1 (Convolution2D)  (None, 16, 78, 16)    160         convolution2d_input_1[0][0]      
-        ____________________________________________________________________________________________________
-        activation_1 (Activation)        (None, 16, 78, 16)    0           convolution2d_1[0][0]            
-        ____________________________________________________________________________________________________
-        convolution2d_2 (Convolution2D)  (None, 14, 76, 8)     1160        activation_1[0][0]               
-        ____________________________________________________________________________________________________
-        activation_2 (Activation)        (None, 14, 76, 8)     0           convolution2d_2[0][0]            
-        ____________________________________________________________________________________________________
-        convolution2d_3 (Convolution2D)  (None, 12, 74, 4)     292         activation_2[0][0]               
-        ____________________________________________________________________________________________________
-        activation_3 (Activation)        (None, 12, 74, 4)     0           convolution2d_3[0][0]            
-        ____________________________________________________________________________________________________
-        convolution2d_4 (Convolution2D)  (None, 10, 72, 2)     74          activation_3[0][0]               
-        ____________________________________________________________________________________________________
-        activation_4 (Activation)        (None, 10, 72, 2)     0           convolution2d_4[0][0]            
-        ____________________________________________________________________________________________________
-        maxpooling2d_1 (MaxPooling2D)    (None, 5, 36, 2)      0           activation_4[0][0]               
-        ____________________________________________________________________________________________________
-        dropout_1 (Dropout)              (None, 5, 36, 2)      0           maxpooling2d_1[0][0]             
-        ____________________________________________________________________________________________________
-        flatten_1 (Flatten)              (None, 360)           0           dropout_1[0][0]                  
-        ____________________________________________________________________________________________________
-        dense_1 (Dense)                  (None, 16)            5776        flatten_1[0][0]                  
-        ____________________________________________________________________________________________________
-        activation_5 (Activation)        (None, 16)            0           dense_1[0][0]                    
-        ____________________________________________________________________________________________________
-        dense_2 (Dense)                  (None, 16)            272         activation_5[0][0]               
-        ____________________________________________________________________________________________________
-        activation_6 (Activation)        (None, 16)            0           dense_2[0][0]                    
-        ____________________________________________________________________________________________________
-        dense_3 (Dense)                  (None, 16)            272         activation_6[0][0]               
-        ____________________________________________________________________________________________________
-        activation_7 (Activation)        (None, 16)            0           dense_3[0][0]                    
-        ____________________________________________________________________________________________________
-        dropout_2 (Dropout)              (None, 16)            0           activation_7[0][0]               
-        ____________________________________________________________________________________________________
-        dense_4 (Dense)                  (None, 1)             17          dropout_2[0][0]                  
-        ====================================================================================================
-        Total params: 8023
-               
- The model is with 8023 params, used *Adam optimizer*, *mean squared error* as loss metric. The model is trained for 30 epochs.
- 
- **note**: getting more data and using pre processed data (i.e augmenting the images) and training it for more epochs would increase the accuracy.
+====================================================================================================
+lambda_1 (Lambda)                (None, 64, 64, 3)     0           lambda_input_1[0][0]             
+____________________________________________________________________________________________________
+convolution2d_1 (Convolution2D)  (None, 32, 32, 24)    1824        lambda_1[0][0]                   
+____________________________________________________________________________________________________
+activation_1 (Activation)        (None, 32, 32, 24)    0           convolution2d_1[0][0]            
+____________________________________________________________________________________________________
+maxpooling2d_1 (MaxPooling2D)    (None, 31, 31, 24)    0           activation_1[0][0]               
+____________________________________________________________________________________________________
+convolution2d_2 (Convolution2D)  (None, 16, 16, 36)    21636       maxpooling2d_1[0][0]             
+____________________________________________________________________________________________________
+activation_2 (Activation)        (None, 16, 16, 36)    0           convolution2d_2[0][0]            
+____________________________________________________________________________________________________
+maxpooling2d_2 (MaxPooling2D)    (None, 15, 15, 36)    0           activation_2[0][0]               
+____________________________________________________________________________________________________
+convolution2d_3 (Convolution2D)  (None, 8, 8, 48)      43248       maxpooling2d_2[0][0]             
+____________________________________________________________________________________________________
+activation_3 (Activation)        (None, 8, 8, 48)      0           convolution2d_3[0][0]            
+____________________________________________________________________________________________________
+maxpooling2d_3 (MaxPooling2D)    (None, 7, 7, 48)      0           activation_3[0][0]               
+____________________________________________________________________________________________________
+convolution2d_4 (Convolution2D)  (None, 7, 7, 64)      27712       maxpooling2d_3[0][0]             
+____________________________________________________________________________________________________
+activation_4 (Activation)        (None, 7, 7, 64)      0           convolution2d_4[0][0]            
+____________________________________________________________________________________________________
+maxpooling2d_4 (MaxPooling2D)    (None, 6, 6, 64)      0           activation_4[0][0]               
+____________________________________________________________________________________________________
+convolution2d_5 (Convolution2D)  (None, 6, 6, 64)      36928       maxpooling2d_4[0][0]             
+____________________________________________________________________________________________________
+activation_5 (Activation)        (None, 6, 6, 64)      0           convolution2d_5[0][0]            
+____________________________________________________________________________________________________
+maxpooling2d_5 (MaxPooling2D)    (None, 5, 5, 64)      0           activation_5[0][0]               
+____________________________________________________________________________________________________
+flatten_1 (Flatten)              (None, 1600)          0           maxpooling2d_5[0][0]             
+____________________________________________________________________________________________________
+dense_1 (Dense)                  (None, 1164)          1863564     flatten_1[0][0]                  
+____________________________________________________________________________________________________
+activation_6 (Activation)        (None, 1164)          0           dense_1[0][0]                    
+____________________________________________________________________________________________________
+dense_2 (Dense)                  (None, 100)           116500      activation_6[0][0]               
+____________________________________________________________________________________________________
+activation_7 (Activation)        (None, 100)           0           dense_2[0][0]                    
+____________________________________________________________________________________________________
+dense_3 (Dense)                  (None, 50)            5050        activation_7[0][0]               
+____________________________________________________________________________________________________
+activation_8 (Activation)        (None, 50)            0           dense_3[0][0]                    
+____________________________________________________________________________________________________
+dense_4 (Dense)                  (None, 10)            510         activation_8[0][0]               
+____________________________________________________________________________________________________
+activation_9 (Activation)        (None, 10)            0           dense_4[0][0]                    
+____________________________________________________________________________________________________
+dense_5 (Dense)                  (None, 1)             11          activation_9[0][0]               
+====================================================================================================
+Total params: 2,116,983
+Trainable params: 2,116,983
+Non-trainable params: 0
 
-## drive.py
-This script is given by udacity in class.
+*used pooling layers to reduce the training time*
+               
+The model is with 2,116,983 params, used *Adam optimizer*, *mean squared error* as loss metric and *1e-4* learning rate. The model is trained for 8 epochs. The model is compiled and saves the architecture as a .json file *(model.json)*.
+then trains the model over training data and save the model with weights as .hd file *(model.h5)* and weights as *weights.h5*
+ 
+## Results
+Tried different model and also on the self generated dataset, but the results were not satisfactory. The Nvidia model with udacity class provided dataset gave the significant results.
+
+*drive.py* script is given by udacity in class.
 Its a kind of ineference, predicts the steering angle using the model with trained weights *(model.hd)*, and these predicted steering commands are given to simulator with constant throttle (with simple PID controller) to drive the car in autonomous mode in simulator.
 
-Since the images were reshaped and normalized during training, the image from the simulator is also reshaped and normalized just as in *processData.py* and *model.py*
+Since the images were reshaped and cropped during training, the image from the simulator is also reshaped and cropped just as in *processData.py* 
+
+below are the links to the video:
 
 ## steps to run the code
 
@@ -99,8 +135,7 @@ this should use the pre trained weights and the model and predict the steering a
 **Training and predicting**
 
 * collect the data and modify the path accordingly in *processData.py*
-* `python processData.py` this should iterate through all the images in the folder and generate pickle file 
-* `python model.py` loads the pickled data and trains over it and should generate the model *model.json* and the model with weights *model.h5*
+* `python model.py` loads the pickled data and trains over it and should generate the model *model.json* and the model with weights *model.h5* and weights as *weight.h5*
 change the epochs if required
 * `python drive.py model.h5 run1`          
 this should use the pre trained weights and the model and predict the steering angle             
