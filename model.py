@@ -20,7 +20,7 @@ import h5py
 # training parameters
 batch_size = 200 # The lower the better
 nb_classes = 1 # The output is a single digit: a steering angle
-nb_epoch = 40 # The higher the better
+nb_epoch = 6 # The higher the better
 
 
 # load the pickled data
@@ -164,6 +164,14 @@ else:
         json.dump(json_string, outfile)
     print("the model architecture is saved")
 
+# uncomment below lines if u want to use the previously trained weights and give the name of weights
+# loda the pre trained weights
+model.load_weights("weights" + ".h5")
+print("Loaded the pre trained weights")
+
+# complie the model
+model.compile(loss='mse', optimizer='adam')
+
 # Compile model using Adam optimizer
 # and loss computed by mean squared error
 model.compile(loss='mean_squared_error',
@@ -177,6 +185,10 @@ history = model.fit(X_train, y_train,
 score = model.evaluate(X_test, y_test, verbose=0)
 print('Test score:', score[0])
 print('Test accuracy:', score[1])
+
+# save the weights
+model.save_weights("weights" + ".h5")
+print("Saved weights to disk")
 
 # Save the model.
 # if the model already exists warn the user to over write
