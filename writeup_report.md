@@ -13,7 +13,7 @@ The approach follwed in this project is as follows:
 * Tested the model in the simulator for driving a complete lap.
 
 
-## pPre processing
+## Pre processing
 
 **rocessData.py**s has all the helper functions to pre process the images and data generators to yield the data for training and validation.
 **key point here is to pre process the images**
