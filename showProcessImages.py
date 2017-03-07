@@ -5,22 +5,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import processData
+import pandas as pd
 
-i = 0
-for j in range(3):
-    plt.subplot(121)
-    img = plt.imread(processData.fPath+'/'+processData.data[i][j].strip())
-    plt.imshow(img)
-    if j == 0:
-        plt.title("Center")
-    elif j == 1:
-        plt.title("Left")
-    elif j == 2:
-        plt.title("Right")
-    plt.subplot(122)
-    a = np.array(processData.load_image(processData.data[i], j)).reshape(1, 18, 80, 1)
-    print(a.shape)
-    plt.imshow(a[0,:,:,0])
-    plt.title("Resized")
-    plt.show()
-del(a)
+data = pd.read_csv(processData.dataPath)
+img = plt.imread(processData.imPath+data.iloc[10][processData.center].strip())
+angle = data.iloc[10][processData.steering]
+
+# shear image
+image, steering_angle = processData.randomShear(img, angle)
+plt.imshow(image)
+plt.show()
+
+# crop image
+image, steering_angle = processData.randomShear(img, angle)
+image = processData.crop(img, 0.2, 0.1)
+plt.imshow(image)
+# flip the image
+image, steering_angle = processData.randomFlip(img, angle)
+plt.imshow(image)
+# random gamma
+image = processData.randomGamma(img)
+plt.imshow(image)
+# resize
+image = processData.resize(img, 30)
+plt.imshow(image)

@@ -20,6 +20,7 @@ from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_a
 from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
+import processData
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -49,7 +50,7 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9
+set_speed = 25
 controller.set_desired(set_speed)
 
 
@@ -66,18 +67,17 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        image_array = image_array[65:135:4, 0:-1:4, 0]
-        image_array = image_array / 255 - 0.5
-        transformed_image_array = image_array.reshape(( 1, \
-											   image_array.shape[0],\
-											   image_array.shape[1],\
-											   1))
-	    # This model currently assumes that the features of the model are just the images. Feel free to change this.
+
+        image_array = processData.crop(image_array, 0.35, 0.1)
+        image_array = processData.resize(image_array, new_dim=(64, 64))
+
+        transformed_image_array = image_array[None, :, :, :]
+
+        # This model currently assumes that the features of the model are just the images. Feel free to change this.
         steering_angle = float(model.predict(transformed_image_array, batch_size=1))
-	    # The driving model currently just outputs a constant throttle. Feel free to edit this.
+        # The driving model currently just outputs a constant throttle. Feel free to edit this.
         throttle = controller.update(float(speed))
-	    #throttle = 0.2
-        print(steering_angle, throttle)
+        #throttle = 0.3
         send_control(steering_angle, throttle)
 
         # save frame
@@ -131,7 +131,7 @@ if __name__ == '__main__':
               ', but the model was built using ', model_version)
 
     model = load_model(args.model)
-    # hack to fix, save the model as h5 instead of weights and architecture
+    #hack to fix, save the model as h5 instead of weights and architecture
     # with open(args.model, 'r') as jfile:
     #     model = model_from_json(json.load(jfile))
     #

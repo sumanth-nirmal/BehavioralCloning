@@ -1,209 +1,95 @@
-# Load the modules
-import pickle
-import math
-import numpy as np
+#!/usr/bin/python
+## Author: sumanth
+## Date: Feb, 05,2017
+# model to train the data
+
 import tensorflow as tf
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-# Import keras deep learning libraries
+from keras.layers import Dense, Flatten, Lambda, Activation, MaxPooling2D
+from keras.layers.convolutional import Convolution2D
+from keras.models import Sequential
+from keras.optimizers import Adam
 import json
-from keras.models import Sequential, model_from_json
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Convolution2D, MaxPooling2D
-from keras.optimizers import SGD, Adam, RMSprop
-from keras.utils import np_utils
-from keras import backend as K
-import json
-import os
-import h5py
 
-# training parameters
-batch_size = 20 # The lower the better
-nb_classes = 1 # The output is a single digit: a steering angle
-nb_epoch = 10 # The higher the better
-load_previous_weights = False # flag to indicate if training should loda the previous weights
+import processData
 
-# load the pickled data
-pickle_file = 'camera.pickle'
-with open(pickle_file, 'rb') as f:
-    pickle_data = pickle.load(f)
-    X_train = pickle_data['train_dataset']
-    y_train = pickle_data['train_labels']
-    X_valid = pickle_data['valid_dataset']
-    y_valid = pickle_data['valid_labels']
-    X_test = pickle_data['test_dataset']
-    y_test = pickle_data['test_labels']
-    del pickle_data  # Free up memory
+tf.python.control_flow_ops = tf
 
-# Print shapes of arrays that are imported
-print('Data and modules loaded.')
-print("train_features size:", X_train.shape)
-print("train_labels size:", y_train.shape)
-print("valid_features size:", X_valid.shape)
-print("valid_labels size:", y_valid.shape)
-print("test_features size:", X_test.shape)
-print("test_labels size:", y_test.shape)
+number_of_epochs = 8
+number_of_samples_per_epoch = 20032
+number_of_validation_samples = 6400
+learning_rate = 1e-4
+activation_relu = 'relu'
 
-# the data, shuffled and split between train and test sets
-X_train = X_train.astype('float32')
-X_valid = X_valid.astype('float32')
-X_test  = X_test.astype('float32')
-X_train /= 255
-X_valid /= 255
-X_test  /= 255
-X_train -= 0.5
-X_valid -= 0.5
-X_test  -= 0.5
+# model is based on NVIDIA's "End to End Learning for Self-Driving Cars" paper
+model = Sequential()
 
-# This is the shape of the image
-input_shape = X_train.shape[1:]
-print(input_shape, 'input shape')
+model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(64, 64, 3)))
 
-# Set the parameters and print out the summary of the model
-np.random.seed(1337)  # for reproducibility
+# starts with five convolutional and maxpooling layers
+model.add(Convolution2D(24, 5, 5, border_mode='same', subsample=(2, 2)))
+model.add(Activation(activation_relu))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
 
-# import model and wieghts if exists
-try:
-    with open('model.json', 'r') as jfile:
-        model = model_from_json(json.load(jfile))
+model.add(Convolution2D(36, 5, 5, border_mode='same', subsample=(2, 2)))
+model.add(Activation(activation_relu))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
 
-    # Use adam and mean squared error for training
-    model.compile("adam", "mse")
+model.add(Convolution2D(48, 5, 5, border_mode='same', subsample=(2, 2)))
+model.add(Activation(activation_relu))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
 
-    # import weights
-    model.load_weights('model.h5')
+model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(1, 1)))
+model.add(Activation(activation_relu))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
 
-    print("Imported model and weights")
+model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(1, 1)))
+model.add(Activation(activation_relu))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
 
-# If the model and weights do not exist, create a new model
-except:
-    # If model and weights do not exist in the local folder,
-    # initiate a model
+model.add(Flatten())
 
-    # number of convolutional filters to use
-    nb_filters1 = 16
-    nb_filters2 = 8
-    nb_filters3 = 4
-    nb_filters4 = 2
+# Next, five fully connected layers
+model.add(Dense(1164))
+model.add(Activation(activation_relu))
 
-    # size of pooling area for max pooling
-    pool_size = (2, 2)
+model.add(Dense(100))
+model.add(Activation(activation_relu))
 
-    # convolution kernel size
-    kernel_size = (3, 3)
+model.add(Dense(50))
+model.add(Activation(activation_relu))
 
-    # Initiating the model
-    model = Sequential()
+model.add(Dense(10))
+model.add(Activation(activation_relu))
 
-    # Starting with the convolutional layer
-    # The first layer will turn 1 channel into 16 channels
-    model.add(Convolution2D(nb_filters1, kernel_size[0], kernel_size[1],
-                            border_mode='valid',
-                            input_shape=input_shape))
-    # Applying ReLU
-    model.add(Activation('relu'))
-    # The second conv layer will convert 16 channels into 8 channels
-    model.add(Convolution2D(nb_filters2, kernel_size[0], kernel_size[1]))
-    # Applying ReLU
-    model.add(Activation('relu'))
-    # The second conv layer will convert 8 channels into 4 channels
-    model.add(Convolution2D(nb_filters3, kernel_size[0], kernel_size[1]))
-    # Applying ReLU
-    model.add(Activation('relu'))
-    # The second conv layer will convert 4 channels into 2 channels
-    model.add(Convolution2D(nb_filters4, kernel_size[0], kernel_size[1]))
-    # Applying ReLU
-    model.add(Activation('relu'))
-    # Apply Max Pooling for each 2 x 2 pixels
-    model.add(MaxPooling2D(pool_size=pool_size))
-    # Apply dropout of 25%
-    model.add(Dropout(0.25))
+model.add(Dense(1))
 
-    # Flatten the matrix. The input has size of 360
-    model.add(Flatten())
-    # Input 360 Output 16
-    model.add(Dense(16))
-    # Applying ReLU
-    model.add(Activation('relu'))
-    # Input 16 Output 16
-    model.add(Dense(16))
-    # Applying ReLU
-    model.add(Activation('relu'))
-    # Input 16 Output 16
-    model.add(Dense(16))
-    # Applying ReLU
-    model.add(Activation('relu'))
-    # Apply dropout of 50%
-    model.add(Dropout(0.5))
-    # Input 16 Output 1
-    model.add(Dense(nb_classes))
-
-# Print out summary of the model
 model.summary()
 
-# Save the model architecture as json, if file already exists
-# warn the user to overwrite the model.
-if 'model.json' in os.listdir():
-    print("The model.json already exists")
-    print("Want to overwite? y or n")
-    user_input = input()
+# save the model achitecture
+json_string = model.to_json()
+with open('model.json', 'w') as outfile:
+    json.dump(json_string, outfile)
 
-    if user_input == "y":
-        # Save model as json file
-         json_string = model.to_json()
-         with open('model.json', 'w') as outfile:
-            json.dump(json_string, outfile)
-            print("Overwrite Successful")
-    else:
-        print("the model architecture is not saved")
-else:
-    # Save model as json file
-    json_string = model.to_json()
+model.compile(optimizer=Adam(learning_rate), loss="mse", )
 
-    with open('model.json', 'w') as outfile:
-        json.dump(json_string, outfile)
-    print("the model architecture is saved")
+# create two generators for training and validation
+trainGen = processData.genBatch()
+valGen = processData.genBatch()
+evalGen = processData.genBatch()
 
-if load_previous_weights == True:
-    # loda the pre trained weights
-    model.load_weights("weights" + ".h5")
-    print("Loaded the pre trained weights")
+history = model.fit_generator(trainGen,
+                              samples_per_epoch=number_of_samples_per_epoch,
+                              nb_epoch=number_of_epochs,
+                              validation_data=valGen,
+                              nb_val_samples=number_of_validation_samples,
+                              verbose=1)
 
-# complie the model
-model.compile(loss='mse', optimizer='adam')
-
-# Compile model using Adam optimizer
-# and loss computed by mean squared error
-model.compile(loss='mean_squared_error',
-              optimizer=Adam(),
-              metrics=['accuracy'])
-
-### Model training
-history = model.fit(X_train, y_train,
-                    batch_size=batch_size, nb_epoch=nb_epoch,
-                    verbose=1, validation_data=(X_valid, y_valid))
-score = model.evaluate(X_test, y_test, verbose=0)
-print('Test score:', score[0])
-print('Test accuracy:', score[1])
+# score = model.evaluate_generator(evalGen, 1000, max_q_size=10)
+# print('Test score:', score[0])
+# print('Test accuracy:', score[1])
 
 # save the weights
-model.save_weights("weights" + ".h5")
-print("Saved weights to disk")
+model.save_weights('weights.h5')
 
-# Save the model.
-# if the model already exists warn the user to over write
-if 'model.h5' in os.listdir():
-    print("The model.h5 already exists")
-    print("Want to overwite? y or n")
-    user_input = input()
-
-    if user_input == "y":
-        # save the model
-        model.save('./model.h5')
-        print("Overwrite Successful")
-    else:
-        print("the model is not saved")
-else:
-    # save weights
-    model.save('./model.h5')
-    print("Saved the model")
+#save the model with weights
+model.save('model.h5')
