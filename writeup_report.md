@@ -21,7 +21,7 @@ Resizing the images will have less features for network to train on. The resized
 As the data set is smaller I have choosen pickle.
 
 ## model.py
-This builds the neural network model details given below. Then compiles the model and saves a .json file *(model.json)* Loads the data from pickle file and then trains the model over training data and evaluate over the test data and save the weights as .hd file *(model.h5)*
+This builds the neural network model details given below. Then compiles the model and saves the architecture as a .json file *(model.json)* Loads the data from pickle file and then trains the model over training data and evaluate over the test data and save the model with weights as .hd file *(model.h5)*
 
 below shows the summary of model used for training              
     ___________________________________________________________________________________________________
@@ -73,25 +73,25 @@ below shows the summary of model used for training
 
 ## drive.py
 This script is given by udacity in class.
-Its a kind of ineference, predicts the steering angle using the model *(mode.json)* and trained weights *(model.hd)*, and these predicted steering commands are given to simulator with constant throttle to drive the car in autonomous mode in simulator.
+Its a kind of ineference, predicts the steering angle using the model with trained weights *(model.hd)*, and these predicted steering commands are given to simulator with constant throttle (with simple PID controller) to drive the car in autonomous mode in simulator.
 
-Since the images were reshaped and normalized during training, the image from the program is reshaped and normalized just as in preprocess.py and model.py
+Since the images were reshaped and normalized during training, the image from the simulator is also reshaped and normalized just as in *processData.py* and *model.py*
 
 ## steps to run the code
 
 **Just using the weights and running inference mode**
 
-* `python drive.py model.json`         
-this should used the pre trained weights and the model and predict the steering angle
-* then run the simulator in autonomous mode and the car should be sucessfully driven in the simulator.
+* `python drive.py model.h5 run1`         
+this should use the pre trained weights and the model and predict the steering angle           
+* then run the simulator in autonomous mode and the car should be sucessfully driven in the simulator and images hspould be saved in the folder run1
 
 **Training and predicting**
 
 * collect the data and modify the path accordingly in *processData.py*
 * `python processData.py` this should iterate through all the images in the folder and generate pickle file 
-* `python model.py` loads the pickled data and trains over it and should generate the model *model.json* and the weights *model.h5*
+* `python model.py` loads the pickled data and trains over it and should generate the model *model.json* and the model with weights *model.h5*
 change the epochs if required
-* `python drive.py model.json`         
-this should used the pre trained weights and the model and predict the steering angle
-* then run the simulator in autonomous mode and the car should be sucessfully driven in the simulator.
+* `python drive.py model.h5 run1`          
+this should use the pre trained weights and the model and predict the steering angle             
+* then run the simulator in autonomous mode and the car should be sucessfully driven in the simulator and images hspould be saved in the folder run1
 
