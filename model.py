@@ -20,7 +20,7 @@ import h5py
 # training parameters
 batch_size = 200 # The lower the better
 nb_classes = 1 # The output is a single digit: a steering angle
-nb_epoch = 5 # The higher the better
+nb_epoch = 40 # The higher the better
 
 
 # load the pickled data

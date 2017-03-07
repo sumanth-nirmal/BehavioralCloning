@@ -80,14 +80,14 @@ X_train, X_test, y_train, y_test = train_test_split(
     features,
     labels,
     test_size=0.10,
-    random_state=123)
+    random_state=832289)
 
 # Get randomized datasets for training and validation
 X_train, X_valid, y_train, y_valid = train_test_split(
     X_train,
     y_train,
     test_size=0.25,
-    random_state=123)
+    random_state=832289)
 
 # Print out shapes of new arrays
 train_size = X_train.shape[0]
