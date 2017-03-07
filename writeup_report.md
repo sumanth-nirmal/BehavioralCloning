@@ -101,7 +101,8 @@ Its a kind of ineference, predicts the steering angle using the model with train
 
 Since the images were reshaped and cropped during training, the image from the simulator is also reshaped and cropped just as in *processData.py* 
 
-below are the links to the video:
+below is the links to the video:
+https://www.youtube.com/watch?v=xbbJy47r-F0
 
 ## steps to run the code
 
