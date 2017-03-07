@@ -13,8 +13,11 @@ from keras.layers import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD, Adam, RMSprop
 from keras.utils import np_utils
 from keras import backend as K
+import json
+import os
+import h5py
 
-# Reload the data
+# load the pickled data
 pickle_file = 'camera.pickle'
 with open(pickle_file, 'rb') as f:
     pickle_data = pickle.load(f)
@@ -53,9 +56,9 @@ print(input_shape, 'input shape')
 # Set the parameters and print out the summary of the model
 np.random.seed(1337)  # for reproducibility
 
-batch_size = 64 # The lower the better
+batch_size = 200 # The lower the better
 nb_classes = 1 # The output is a single digit: a steering angle
-nb_epoch = 10 # The higher the better
+nb_epoch = 30 # The higher the better
 
 # import model and wieghts if exists
 try:
@@ -149,10 +152,6 @@ history = model.fit(X_train, y_train,
 score = model.evaluate(X_test, y_test, verbose=0)
 print('Test score:', score[0])
 print('Test accuracy:', score[1])
-
-import json
-import os
-import h5py
 
 # Save the model.
 # If the model.json file already exists in the local file,

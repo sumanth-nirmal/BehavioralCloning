@@ -15,24 +15,24 @@ import base64
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from sklearn.cross_validation import train_test_split
+import pickle
 
 ### Paths to folder and label
-folder_path = "/home/sumanth/catkin_ws/src/BehavioralCloning/trainingData/Udata/data"
-label_path = "{}/driving_log.csv".format(folder_path)
+fPath = "/home/sumanth/catkin_ws/src/BehavioralCloning/trainingData/Udata/data"
+csvPath = "{}/driving_log.csv".format(fPath)
 
 
 ### Import data
-data = []
-with open(label_path) as F:
+data = [] # empty list
+with open(csvPath) as F:
     reader = csv.reader(F)
     for i in reader:
         data.append(i)
 
 print("data imported")
-
 ### size of the data
-data_size = len(data)
-print("data size:", data_size)
+print("data size:", len(data))
 
 ### Emtpy generators for feature and labels
 features = ()
@@ -44,12 +44,11 @@ labels = ()
 ### j = 0,1,2 corresponds to center, left, right
 def load_image(data_line, j):
     print(data_line[j].strip())
-    img = plt.imread(folder_path+'/'+data_line[j].strip())[65:135:4,0:-1:4,0]
+    img = plt.imread(fPath+'/'+data_line[j].strip())[65:135:4,0:-1:4,0]
     lis = img.flatten().tolist()
     return lis
 
 #data = data[:100]
-#print('sumanth',len(data))
 # For each item in data, convert camera images to single list
 # and save them into features list.
 for i in tqdm(range(int(len(data))), unit='items'):
@@ -76,21 +75,19 @@ labels = np.array(labels)
 print("features:", features.shape)
 print("labels:", labels.shape)
 
-from sklearn.cross_validation import train_test_split
-
 # Get randomized datasets for training and test
 X_train, X_test, y_train, y_test = train_test_split(
     features,
     labels,
     test_size=0.10,
-    random_state=832289)
+    random_state=123)
 
 # Get randomized datasets for training and validation
 X_train, X_valid, y_train, y_valid = train_test_split(
     X_train,
     y_train,
     test_size=0.25,
-    random_state=832289)
+    random_state=123)
 
 # Print out shapes of new arrays
 train_size = X_train.shape[0]
@@ -104,8 +101,6 @@ print("valid size:", valid_size)
 print("test size:", test_size)
 print("input_shape:", input_shape)
 print("features count:", features_count)
-
-import pickle
 
 # Save the data for easy access
 pickle_file = 'camera.pickle'
