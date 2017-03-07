@@ -20,7 +20,7 @@ Resizing the images will have less features for network to train on. The resized
 The input images recorded from the simulator and the images resized and cropped are shown below, for all the thre  camera
 
 Center:                
-![Center](images/center.png)
+![center](images/center.png)
 
 Left:                
 ![left](images/left.png)
