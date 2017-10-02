@@ -5,6 +5,8 @@ This project as done as part of udacity self driving car engineer nano degree(ht
 
 The car is driven in the [simulator](https://github.com/udacity/self-driving-car-sim) and the recorded data is used train the neural network and achieve a autonomosu control of the car.
 
-[autonomous driving video](https://www.youtube.com/watch?v=xbbJy47r-F0)
+![behavior_cloning animation](Autonomous_Car_steering_control.gif)
+
+For the full [autonomous driving video](https://www.youtube.com/watch?v=xbbJy47r-F0)
 
 [more details](https://github.com/sumanth-nirmal/BehavioralCloning/blob/master/writeup_report.md)
